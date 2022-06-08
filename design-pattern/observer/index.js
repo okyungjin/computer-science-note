@@ -16,4 +16,3 @@ const reactiveObject = createReactiveObject(kyungJ, console.log);
 
 reactiveObject.skill = 'JavaScript'; // console.log 결과 없음
 reactiveObject.skill = 'TypeScript'; // skill이/가 [JavaScript] >> [TypeScript]로 변경되었습니다.
-

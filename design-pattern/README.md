@@ -9,7 +9,11 @@
 # Design Pattern
 ## [싱글톤 패턴 (Singleton Pattern)](/design-pattern/singleton/index.js)
 
+<br>
+
 ## [팩토리 패턴 (Factory Pattern)](/design-pattern/factory/index.js)
+
+<br>
 
 ## [전략 패턴 (Strategy Pattern)](/design-pattern/strategy/index.js)
 `전략 패턴(Strategy Pattern)` 은 정책 패턴(policy pattern)이라고도 하며, 객체의 행위를 바꾸고 싶은 경우 **'직접' 수정하지 않고 전략이라고 부르는 '캡슐화한 알고리즘'을 컨텍스트 안에서 바꿔주면서** 상호 교체가 가능하게 만드는 패턴이다.
@@ -22,6 +26,29 @@ passport는 여러 가지 '전략'을 기반으로 인증할 수 있게 하며, 
 
 - 서비스 내의 회원가입된 ID, PW 기반으로 인증하는 `LocalStrategy` 전략
 - 페이스북, 네이버 등 다른 서비스를 기반으로 인증하는 OAuth 전략
+
+```js
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+
+passport.use(new LocalStrategy(
+  (username, password, done) => {
+    User.findOne({ username }, (err, user) => {
+      if (err) return done(err);
+      
+      if (!user)
+        return done(null, false, { message: 'Incorrect username.'});
+      
+      if (!user.validPassword(password))
+        return done(null, false, { message: 'Incorrect password.' });
+      
+      return done(null, user);
+    })
+  }
+));
+```
+
+<br>
 
 ## [옵저버 패턴(Observer Pattern)](/design-pattern/observer/index.js)
 `옵저버 패턴(Observer Pattern)` 은 **`주체` 가 어떤 `객체(subject)` 의 상태 변화를 관찰**하다가 **상태 변화가 있을 때마다 메서드 등을 통해 옵저버 목록에 있는 옵저버들에게 변화를 알려주는** 디자인 패턴이다.
@@ -56,3 +83,30 @@ console.log(proxy.name); // [Developer] KyungJin Jung
 
 `proxy` 라는 변수에 `name` 속성을 선언하지 않았는데도 `proxy.name` 으로 속서에 접근하려고 할 때, 그 부분을 가로채서 문자열을 만들어 반환하고 있다.
 
+<br>
+
+자바스크립트의 프록시 객체를 통해 옵저버 패턴을 구현해보자.
+
+```js
+const createReactiveObject = (target, callback) => {
+  const proxy = new Proxy(target, {
+    set(obj, prop, value) {
+      if (value === obj[prop]) return true;
+
+      const prev = obj[prop];
+      obj[prop] = value;
+      callback(`${prop}이/가 [${prev}] >> [${value}]로 변경되었습니다.`);
+    }
+  })
+  return proxy;
+}
+
+const kyungJ = { skill: 'JavaScript' }
+const reactiveObject = createReactiveObject(kyungJ, console.log);
+
+reactiveObject.skill = 'JavaScript'; // console.log 결과 없음
+reactiveObject.skill = 'TypeScript'; // skill이/가 [JavaScript] >> [TypeScript]로 변경되었습니다.
+```
+프록시 객체의 `get()` 함수는 속성과 함수에 대한 접근을 가로채며, `has()` 함수는 in 연산자의 사용을 가로챈다.
+
+`set()` 함수는 속성에 대한 접근을 가로챈다. `set()` 함수를 통해 속성에 대한 접근을 가로채서 `skill` 이라는 속성이 'JavaScript'에서 'TypeScript'이 되는 것을 감시할 수 있다.
